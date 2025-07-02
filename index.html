@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicle Collision Detection System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0a0a0a; /* deep black */
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111;
+      padding: 20px;
+      text-align: center;
+      color: #white;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 0 15px #00ff88;
+      text-shadow: 0 0 10px #00ff88;
+      letter-spacing: 1px;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .video-container {
+      flex: 2;
+      min-width: 300px;
+      background: #111;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-container img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .data-container {
+      flex: 1;
+      min-width: 280px;
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px #00ff88;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .status-badge {
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 0 8px #444;
+    }
+
+    .status-safe {
+      background-color: #002b16;
+      color: #00ff88;
+      border: 1px solid #00ff88;
+    }
+
+    .status-danger {
+      background-color: #2b0000;
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #ccc;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+    }
+
+    th {
+      text-align: left;
+      background-color: #222;
+      color: #0f0;
+    }
+
+    tr:hover {
+      background-color: #333;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>🚗 Vehicle Collision Detection System</header>
+  <div class="main">
+    <div class="video-container">
+      <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+    </div>
+    <div class="data-container">
+      <div id="danger-status" class="status-badge status-safe">Loading...</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="vehicle-table-body">
+          <!-- dynamic rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function fetchVehicleData() {
+      try {
+        const res = await fetch('/vehicle_data');
+        const data = await res.json();
+
+        const tbody = document.getElementById('vehicle-table-body');
+        tbody.innerHTML = '';
+        for (const [vehicle, count] of Object.entries(data.vehicles)) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${vehicle.charAt(0).toUpperCase() + vehicle.slice(1)}</td><td>${count}</td>`;
+          tbody.appendChild(row);
+        }
+
+        const dangerElem = document.getElementById('danger-status');
+        dangerElem.textContent = data.danger;
+        if (data.danger.includes("Collision")) {
+          dangerElem.className = 'status-badge status-danger';
+        } else {
+          dangerElem.className = 'status-badge status-safe';
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    }
+
+    setInterval(fetchVehicleData, 1000);
+    fetchVehicleData();
+  </script>
+</body>
+</html>
